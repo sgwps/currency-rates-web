@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Rates</title>
+</head>
+
+<body>
+    
+    <form method="post" th:object="${form}" >
+        <input type="date" th:field="*{startDate}" 
+            th:min="${rateDymnamic.getPair().getMinDate()}" th:max="${currentUTCDate}">
+        <br>
+        <input type="date" th:field="*{endDate}"
+            th:min="${rateDymnamic.getPair().getMinDate()}" th:max="${currentUTCDate}">
+        <br>
+        <select th:field="*{currencyFrom}" >
+
+            <option th:each="currency : ${currencies}"  th:value="${currency}" th:text="${currency}"></option>
+        </select>
+        <br>
+        <select th:field="*{currencyTo}">
+
+            <option th:each="currency : ${currencies}" th:value="${currency}" th:text="${currency}" ></option>
+        </select>
+        <br>
+        <input type="submit">
+    </form>
+    <br>
+    <table>
+        <tr th:each="rate : ${rateDymnamic}">
+            <td th:text="${rate.getDate()}">
+            <td th:text="${rate.getValue()}">
+        </tr>
+    </table>
+</body>
+
+</html>
