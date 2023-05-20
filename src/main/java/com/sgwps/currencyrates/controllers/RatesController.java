@@ -23,7 +23,6 @@ import com.sgwps.currencyrates.datePeriod.DatePeriod;
 import com.sgwps.currencyrates.forms.RateRequestForm;
 import com.sgwps.currencyrates.models.RateDynamic;
 
-
 @Controller
 @RequestMapping("/rates")
 @SessionAttributes("rateDymnamic")
@@ -34,20 +33,15 @@ public class RatesController {
         return new RateDynamic(new CurrencyPair(CurrencyCode.USD, CurrencyCode.EUR), new DatePeriod());
     }
 
-
     @ModelAttribute("currentUTCDate")
-    public LocalDate currentUTCDate(){
+    public LocalDate currentUTCDate() {
         return LocalDate.now(ZoneOffset.UTC);
     }
 
-
-    
-
     @ModelAttribute("currencies")
-    public CurrencyCode[] currencyCodes(){
+    public CurrencyCode[] currencyCodes() {
         return CurrencyCode.values();
     }
-
 
     @GetMapping
     public String getHTML(Model model, @ModelAttribute("rateDymnamic") RateDynamic rate) {
@@ -55,12 +49,16 @@ public class RatesController {
         return "rates";
     }
 
-
     @PostMapping
-    public String resolvePostRequst(Model model, @ModelAttribute RateRequestForm form, @ModelAttribute("rateDymnamic") RateDynamic rate) throws MalformedURLException, IOException {
-        rate.procceedForm(form);
-        model.addAttribute("form", rate.getForm());
-        return "rates";
+    public String resolvePostRequst(Model model, @ModelAttribute RateRequestForm form,
+            @ModelAttribute("rateDymnamic") RateDynamic rate) throws MalformedURLException, IOException {
+        try {
+            rate.procceedForm(form);
+            model.addAttribute("form", rate.getForm());
+            return "rates";
+        } catch (MalformedURLException e) {
+            return "invalid_request";
+        }
     }
 
 }
