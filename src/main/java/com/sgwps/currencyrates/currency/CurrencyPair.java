@@ -49,4 +49,9 @@ public class CurrencyPair {
             return minFrom;
     }
 
+
+    public CurrencyPair copy() {
+        return new CurrencyPair(currencyFrom, currencyTo);
+    }
+
 }

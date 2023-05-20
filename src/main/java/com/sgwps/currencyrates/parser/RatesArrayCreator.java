@@ -22,19 +22,19 @@ public class RatesArrayCreator {
         return request.getRates();
     }
 
-    public void addSubPeriod(LocalDate start, LocalDate end, ArrayList<ArrayList<Double>> arrayList) throws MalformedURLException, IOException {
+    public ArrayList<Double> getSubPeriod(LocalDate start, LocalDate end) throws MalformedURLException, IOException {
         try {
-            DatePeriod prefix = new DatePeriod();
-            arrayList.add(getRatesOfRange(prefix));
+            DatePeriod prefix = new DatePeriod(start, end);
+            return getRatesOfRange(prefix);
         }
         catch (IllegalArgumentException e) {
-            
+            return new ArrayList<>();
         }
     }
 
     public ArrayList<Double> update(DatePeriod oldPeriod, DatePeriod newPeriod, ArrayList<Double> currentArray) throws MalformedURLException, IOException {
         ArrayList<ArrayList<Double>> preResult = new ArrayList<>();
-        addSubPeriod(newPeriod.getStartDate(), oldPeriod.getStartDate().minusDays(1), preResult);
+        preResult.add(getSubPeriod(newPeriod.getStartDate(), oldPeriod.getStartDate().minusDays(1)));
         IntegerPair intersection = oldPeriod.IntersectionIndexes(newPeriod);
         if (intersection.getFirstVal() != -1) {
             ArrayList<Double> intersectionArray = new ArrayList<>();
@@ -43,7 +43,7 @@ public class RatesArrayCreator {
             }
             preResult.add(intersectionArray);
         }
-        addSubPeriod(oldPeriod.getEndDate().plusDays(1), newPeriod.getEndDate(), preResult);
+        preResult.add(getSubPeriod(oldPeriod.getEndDate().plusDays(1), newPeriod.getEndDate()));
         ArrayList<Double> result = new ArrayList<>();
         for (ArrayList<Double> i : preResult) {
             for (double j : i) {

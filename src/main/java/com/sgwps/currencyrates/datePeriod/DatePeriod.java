@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
+import java.util.Set;
 
 import lombok.Getter;
 
@@ -60,7 +61,7 @@ public class DatePeriod implements Iterable<LocalDate>{
 
     public DatePeriod Intersection(DatePeriod other) {
         LocalDate newStart = getStartDate().isBefore(other.getStartDate()) ? other.getStartDate() : getStartDate();
-        LocalDate newEnd = getStartDate().isAfter(other.getStartDate()) ? other.getStartDate() : getStartDate();
+        LocalDate newEnd = getEndDate().isAfter(other.getEndDate()) ? other.getEndDate() : getEndDate();
         return new DatePeriod(newStart, newEnd);
     }
 
@@ -80,4 +81,11 @@ public class DatePeriod implements Iterable<LocalDate>{
     public int getIndex(LocalDate date) {
         return (int) getStartDate().until(date, ChronoUnit.DAYS);
     }
+
+    public DatePeriod copy() {
+        LocalDate startDateNew = LocalDate.ofEpochDay(this.getStartDate().toEpochDay());
+        LocalDate endDateNew = LocalDate.ofEpochDay(this.getEndDate().toEpochDay());
+        return new DatePeriod(startDateNew, endDateNew);
+    }
+
 }

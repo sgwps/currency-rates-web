@@ -29,7 +29,7 @@
     </form>
     <br>
     <table>
-        <tr th:each="rate : ${rateDymnamic}">
+        <tr th:each="rate : ${rateDymnamic.getRatesArray()}">
             <td th:text="${rate.getDate()}">
             <td th:text="${rate.getValue()}">
         </tr>

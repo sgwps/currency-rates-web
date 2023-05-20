@@ -22,6 +22,7 @@ import com.sgwps.currencyrates.currency.CurrencyCode;
 import com.sgwps.currencyrates.currency.CurrencyInfo;
 import com.sgwps.currencyrates.currency.CurrencyPair;
 import com.sgwps.currencyrates.datePeriod.DatePeriod;
+import com.sgwps.currencyrates.datePeriod.DateRate;
 import com.sgwps.currencyrates.models.RateDynamic;
 import com.sgwps.currencyrates.parser.CurrencyRatesParser;
 
@@ -29,7 +30,14 @@ import com.sgwps.currencyrates.parser.CurrencyRatesParser;
 public class CurrencyRatesApplication {
 
 	public static void main(String[] args) throws IOException {
+		/*DatePeriod p1 = new DatePeriod();
+		DatePeriod p2 = new DatePeriod();
+		p2.setStart(LocalDate.of(2023, 5, 11));
+		DatePeriod i = p2.Intersection(p1);
+		DatePeriod i2 = p1.Intersection(p2);*/
+
 		SpringApplication.run(CurrencyRatesApplication.class, args);
+		
 	}
 
 }

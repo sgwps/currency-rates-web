@@ -53,11 +53,13 @@ public class RatesController {
     public String resolvePostRequst(Model model, @ModelAttribute RateRequestForm form,
             @ModelAttribute("rateDymnamic") RateDynamic rate) throws MalformedURLException, IOException {
         try {
+
             rate.procceedForm(form);
             model.addAttribute("form", rate.getForm());
             return "rates";
-        } catch (MalformedURLException e) {
+        } catch (MalformedURLException | IllegalArgumentException e) {
             return "invalid_request";
+
         }
     }
 

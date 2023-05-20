@@ -9,8 +9,9 @@ public class PeriodIterator implements Iterator<LocalDate> {
     LocalDate end;
 
     public PeriodIterator(DatePeriod period) {
-        this.current = period.getStartDate().minusDays(1);
-        this.end = period.getEndDate();
+        DatePeriod copy = period.copy();
+        this.current = copy.getStartDate().minusDays(1);
+        this.end = copy.getEndDate();
     }
 
     @Override
@@ -21,6 +22,7 @@ public class PeriodIterator implements Iterator<LocalDate> {
 
     @Override
     public LocalDate next() {
+
         return current;
     }
     

@@ -19,7 +19,7 @@ import com.sgwps.currencyrates.parser.RatesArrayCreator;
 import ch.qos.logback.classic.pattern.DateConverter;
 import lombok.Getter;
 
-public class RateDynamic implements Iterable<DateRate>{
+public class RateDynamic implements Iterable<DateRate> {
     @Getter
     CurrencyPair pair;
     @Getter
@@ -29,33 +29,13 @@ public class RateDynamic implements Iterable<DateRate>{
 
     public int testValue = 1;
 
-    
 
-
-    public void setStartDate(LocalDate date) throws MalformedURLException, IOException {
-        LocalDate minDate = pair.getMinDate();
-        if (date.isBefore(minDate)) {
-            throw new IllegalArgumentException("Date is to weak");
-        }
+    private void setPair(CurrencyPair pair) throws MalformedURLException, IOException {
+        this.pair = pair;
         RatesArrayCreator arrayCreator = new RatesArrayCreator(pair);
-        DatePeriod newPeriod = new DatePeriod(date, period.getEndDate());
-        rates = arrayCreator.update(period, newPeriod, rates);
-        period = newPeriod;
-        //  period.setStart(minDate);
+        rates = arrayCreator.getRatesOfRange(period);
+
     }
-
-
-    public void setEndDate(LocalDate date) throws MalformedURLException, IOException {
-        LocalDate minDate = pair.getMinDate();
-        if (date.isBefore(minDate)) {
-            throw new IllegalArgumentException("Date is to weak");
-        }
-        RatesArrayCreator arrayCreator = new RatesArrayCreator(pair);
-        DatePeriod newPeriod = new DatePeriod(period.getStartDate(), date);
-        rates = arrayCreator.update(period, newPeriod, rates);
-        period = newPeriod;
-    }
-
 
     private void setPeriod(DatePeriod period) throws MalformedURLException, IOException {
         LocalDate minDate = pair.getMinDate();
@@ -67,44 +47,90 @@ public class RateDynamic implements Iterable<DateRate>{
         RatesArrayCreator arrayCreator = new RatesArrayCreator(pair);
         rates = arrayCreator.getRatesOfRange(period);
     }
-    
-    public RateDynamic(CurrencyPair pair, DatePeriod period) throws MalformedURLException, IOException {
-        this.pair = pair;
-        setPeriod(period);
-        
+
+
+    private void updatePeriod(DatePeriod period) throws MalformedURLException, IOException {
+        LocalDate minDate = pair.getMinDate();
+        if (period.getStartDate().isBefore(minDate)) {
+            throw new IllegalArgumentException("Date is to weak");
+        }
+
+        RatesArrayCreator arrayCreator = new RatesArrayCreator(pair);
+        rates = arrayCreator.update(this.period, period, rates);
+        this.period = period;
+
     }
 
+    private void setCurrencyAndPeriod(CurrencyPair pair, DatePeriod period) throws MalformedURLException, IOException {
+        LocalDate minDate = pair.getMinDate();
+        if (period.getStartDate().isBefore(minDate)) {
+            throw new IllegalArgumentException("Date is to weak");
+        }
+        this.period = period;
+        setPair(pair);
+    }
+
+    public RateDynamic(CurrencyPair pair, DatePeriod period) throws MalformedURLException, IOException {
+        setCurrencyAndPeriod(pair, period);
+
+    }
 
     public void ParseFullForm(RateRequestForm form) throws MalformedURLException, IOException {
-        CurrencyPair pair = new CurrencyPair(CurrencyCode.valueOf(form.getCurrencyFrom()), CurrencyCode.valueOf(form.getCurrencyTo()));
+        CurrencyPair pair = new CurrencyPair(CurrencyCode.valueOf(form.getCurrencyFrom()),
+                CurrencyCode.valueOf(form.getCurrencyTo()));
         DatePeriod period = new DatePeriod(form.getStartDate(), form.getEndDate());
-        this.pair = pair;
-        setPeriod(period);
+        setCurrencyAndPeriod(pair, period);
     }
 
-    public RateDynamic() throws MalformedURLException, IOException{
+    public RateDynamic() throws MalformedURLException, IOException {
         this(new CurrencyPair(CurrencyCode.USD, CurrencyCode.EUR), new DatePeriod());
     }
 
-    public RateRequestForm getForm(){
-        return new RateRequestForm(period.getStartDate(), period.getEndDate(), pair.getCurrencyFrom().toString(), pair.getCurrencyTo().toString());
+    public RateRequestForm getForm() {
+        DatePeriod periodCopy = period.copy();
+        return new RateRequestForm(periodCopy.getStartDate(), periodCopy.getEndDate(), pair.getCurrencyFrom().toString(),
+                pair.getCurrencyTo().toString());
     }
 
-    public void procceedForm(RateRequestForm form) throws MalformedURLException, IOException{
-        if (CurrencyCode.valueOf(form.getCurrencyFrom()) != this.pair.getCurrencyFrom() || CurrencyCode.valueOf(form.getCurrencyTo()) != this.pair.getCurrencyTo()) {
-            ParseFullForm(form);
-        }
-        else {
-            DatePeriod period = new DatePeriod(form.getStartDate(), form.getEndDate());
-            setPeriod(period);
+    public void procceedForm(RateRequestForm form) throws MalformedURLException, IOException {
+        CurrencyPair oldPair = this.pair.copy();
+        DatePeriod oldPeriod = this.period.copy();
+        ArrayList<Double> rates = (ArrayList<Double>) this.rates.clone();
+        try {
+            if (CurrencyCode.valueOf(form.getCurrencyFrom()) != this.pair.getCurrencyFrom()
+                    || CurrencyCode.valueOf(form.getCurrencyTo()) != this.pair.getCurrencyTo()) {
+                ParseFullForm(form);
+            } else {
+                DatePeriod newPeriod = new DatePeriod(form.getStartDate(), form.getEndDate());
+                updatePeriod(newPeriod);
+            }
+        } catch (IllegalArgumentException e) {
+            this.pair = oldPair;
+            this.period = oldPeriod;
+            this.rates = rates;
+            throw new IllegalArgumentException();
+
         }
     }
 
+    public ArrayList<DateRate> getRatesArray() {
+        ArrayList<DateRate> result = new ArrayList<>();
+        for (DateRate rate : this) {
+            result.add(rate);
+        }
+        return result;
+    }
 
     @Override
     public Iterator<DateRate> iterator() {
         return new Iterator<DateRate>() {
-            Iterator<LocalDate> periodIterator = period.iterator();
+
+            Iterator<LocalDate> periodIterator;
+
+            {
+                periodIterator = period.iterator();
+            }
+            
 
             @Override
             public boolean hasNext() {
@@ -113,14 +139,13 @@ public class RateDynamic implements Iterable<DateRate>{
 
             @Override
             public DateRate next() {
+
                 LocalDate date = periodIterator.next();
                 int index = period.getIndex(date);
                 return new DateRate(date, rates.get(index));
             }
 
-
         };
     }
-   
-    
+
 }

@@ -32,4 +32,6 @@ public class RateRequestForm {
     @Getter
     @Setter
     public String currencyTo;
+
+
 }
